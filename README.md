@@ -38,6 +38,7 @@ python3 tools/sync_to_obsidian.py \
 - 集合：`resources`（公開資源）與 `metadata`（目錄資訊）
 - 權限：訪客只能讀取 `status == "published"` 的資源；瀏覽器端禁止寫入
 - 前端：優先查詢 Firestore，連線失敗時自動改用 `data/resources.js`
+- 視覺化後台：`admin.html` 提供本機新增、編輯、刪除、篩選與 JSON 匯出；不直接讀寫 Firebase
 
 在已登入專案的 Google Cloud Shell 中，可執行：
 
