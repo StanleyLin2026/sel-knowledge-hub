@@ -7,6 +7,21 @@ const state = {
 const $ = (selector) => document.querySelector(selector);
 const unique = (key) => [...new Set(resources.flatMap(item => Array.isArray(item[key]) ? item[key] : [item[key]]))].sort((a, b) => a.localeCompare(b, "zh-Hant"));
 const escapeHtml = (value) => String(value).replace(/[&<>'"]/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[char]));
+const noteFilename = item => `${item.id} ${item.title.replace(/[\\/:*?"<>|]/g, "-")}`;
+
+function openInObsidian(item) {
+  let config = JSON.parse(localStorage.getItem("sel-obsidian-config") || "null");
+  if (!config?.vault || !config?.folder) {
+    const vault = window.prompt("請輸入 Obsidian vault 名稱（設定只保存在此瀏覽器）");
+    if (!vault) return;
+    const folder = window.prompt("請輸入資源卡在 vault 內的相對資料夾", "SEL-Database/Resources");
+    if (!folder) return;
+    config = { vault: vault.trim(), folder: folder.replace(/^\/+|\/+$/g, "") };
+    localStorage.setItem("sel-obsidian-config", JSON.stringify(config));
+  }
+  const file = `${config.folder}/${noteFilename(item)}`;
+  window.location.href = `obsidian://open?vault=${encodeURIComponent(config.vault)}&file=${encodeURIComponent(file)}`;
+}
 
 function fillSelect(selector, values) {
   const select = $(selector);
@@ -67,7 +82,12 @@ function openResource(id) {
       <div><small>權利狀態</small><strong>${escapeHtml(item.rights)}</strong></div>
     </div>
     <div class="tag-list">${item.tags.map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join("")}</div>
-    <div class="source-box"><strong>來源與版本說明</strong><br>${escapeHtml(item.source)}<br><small>最後更新：${escapeHtml(item.date)}</small></div>`;
+    <div class="source-box"><strong>來源與版本說明</strong><br>${escapeHtml(item.source)}<br><small>最後更新：${escapeHtml(item.date)}</small></div>
+    <div class="dialog-actions">
+      <button class="primary-button" type="button" data-obsidian-open="${escapeHtml(item.id)}">在 Obsidian 中開啟</button>
+      <a class="secondary-button" href="?resource=${encodeURIComponent(item.id)}">此筆資料連結</a>
+    </div>`;
+  $("[data-obsidian-open]").addEventListener("click", () => openInObsidian(item));
   $("#resourceDialog").showModal();
 }
 
@@ -142,3 +162,5 @@ $("#collectionClose").addEventListener("click", () => $("#collectionDialog").clo
 ["#resourceDialog", "#collectionDialog"].forEach(selector => $(selector).addEventListener("click", event => { if (event.target === event.currentTarget) event.currentTarget.close(); }));
 
 render();
+const initialResource = new URLSearchParams(window.location.search).get("resource");
+if (initialResource && resources.some(item => item.id === initialResource)) openResource(initialResource);
