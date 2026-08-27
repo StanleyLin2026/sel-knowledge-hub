@@ -2,14 +2,91 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null
+        && request.auth.token.email_verified == true;
+    }
+
+    function isBootstrapAdmin() {
+      return signedIn()
+        && request.auth.token.email == "jerlih2@gmail.com";
+    }
+
+    function hasUserProfile() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function userProfile() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isActive() {
+      return isBootstrapAdmin()
+        || (hasUserProfile() && userProfile().active == true);
+    }
+
+    function hasRole(roles) {
+      return isActive()
+        && (isBootstrapAdmin() || userProfile().role in roles);
+    }
+
     match /resources/{resourceId} {
-      allow read: if resource.data.status == "published";
-      allow write: if false;
+      allow read: if resource.data.status == "published"
+        || hasRole(["admin", "editor", "viewer"]);
+
+      allow create: if request.resource.data.id == resourceId
+        && (
+          hasRole(["admin"])
+          || (hasRole(["editor"])
+            && request.resource.data.status in ["draft", "review"])
+        );
+
+      allow update: if request.resource.data.id == resource.data.id
+        && request.resource.data.id == resourceId
+        && (
+          hasRole(["admin"])
+          || (hasRole(["editor"])
+            && resource.data.status in ["draft", "review"]
+            && request.resource.data.status in ["draft", "review"])
+        );
+
+      allow delete: if hasRole(["admin"]);
+    }
+
+    match /users/{userId} {
+      allow get: if signedIn()
+        && (request.auth.uid == userId || hasRole(["admin"]));
+      allow list: if hasRole(["admin"]);
+
+      allow create: if signedIn()
+        && request.auth.uid == userId
+        && request.resource.data.active == true
+        && (
+          (isBootstrapAdmin() && request.resource.data.role == "admin")
+          || (!isBootstrapAdmin() && request.resource.data.role == "viewer")
+        );
+
+      allow update: if (hasRole(["admin"])
+          && request.resource.data.role in ["admin", "editor", "viewer"]
+          && request.resource.data.active is bool)
+        || (
+          signedIn()
+          && request.auth.uid == userId
+          && request.resource.data.role == resource.data.role
+          && request.resource.data.active == resource.data.active
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            "displayName", "email", "photoURL", "lastLoginAt"
+          ])
+        );
+
+      allow delete: if hasRole(["admin"])
+        && request.auth.uid != userId;
     }
 
     match /metadata/{documentId} {
       allow read: if true;
-      allow write: if false;
+      allow write: if hasRole(["admin"]);
     }
 
     match /{document=**} {
