@@ -1,4 +1,6 @@
 const STORAGE_KEY = "sel-admin-local-resources-v1";
+const GOOGLE_CLIENT_ID = "360200964218-g3in318dni50ttuio1qt5vdtqpnr0c4m.apps.googleusercontent.com";
+const AUTH_SESSION_KEY = "sel-admin-google-profile-v1";
 const clone = value => JSON.parse(JSON.stringify(value));
 const initialResources = (window.SEL_RESOURCES || []).map((item, index) => ({ ...item, status: index % 7 === 0 ? "review" : "published" }));
 let resources = loadResources();
@@ -7,6 +9,48 @@ const $ = selector => document.querySelector(selector);
 const escapeHtml = value => String(value ?? "").replace(/[&<>'"]/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[char]));
 const splitList = value => value.split(/[,，]/).map(item => item.trim()).filter(Boolean);
 const statusLabels = { published: "已發布", review: "待審查", draft: "草稿" };
+
+function decodeGoogleCredential(credential) {
+  let payload = credential.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+  payload += "=".repeat((4 - payload.length % 4) % 4);
+  const decoded = decodeURIComponent(atob(payload).split("").map(char => `%${char.charCodeAt(0).toString(16).padStart(2, "0")}`).join(""));
+  return JSON.parse(decoded);
+}
+function showAdmin(profile) {
+  $("#authGate").hidden = true;
+  $("#adminShell").hidden = false;
+  $("#accountName").textContent = profile.name || "Google 使用者";
+  $("#accountEmail").textContent = profile.email || "";
+  $("#popoverEmail").textContent = profile.email || "";
+  $("#accountAvatar").src = profile.picture || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='64' height='64' rx='32' fill='%23dff1e8'/%3E%3Ctext x='32' y='41' text-anchor='middle' font-size='26' fill='%23176b55'%3EG%3C/text%3E%3C/svg%3E";
+  render();
+}
+function handleGoogleCredential(response) {
+  try {
+    const profile = decodeGoogleCredential(response.credential);
+    if (!profile.email || profile.email_verified === false) throw new Error("Google 帳號的電子郵件尚未驗證。");
+    const sessionProfile = { name: profile.name, email: profile.email, picture: profile.picture, exp: profile.exp };
+    sessionStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(sessionProfile));
+    showAdmin(sessionProfile);
+  } catch (error) {
+    $("#authMessage").textContent = error.message || "登入失敗，請稍後再試。";
+    $("#authMessage").classList.add("is-error");
+  }
+}
+function initializeGoogleSignIn() {
+  let saved = null;
+  try { saved = JSON.parse(sessionStorage.getItem(AUTH_SESSION_KEY) || "null"); } catch { sessionStorage.removeItem(AUTH_SESSION_KEY); }
+  if (saved?.email && (!saved.exp || saved.exp * 1000 > Date.now())) { showAdmin(saved); return; }
+  sessionStorage.removeItem(AUTH_SESSION_KEY);
+  if (!window.google?.accounts?.id) {
+    $("#authMessage").textContent = "Google 登入服務載入失敗，請重新整理頁面。";
+    $("#authMessage").classList.add("is-error");
+    return;
+  }
+  google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleGoogleCredential, auto_select: false });
+  google.accounts.id.renderButton($("#googleSignInButton"), { theme: "outline", size: "large", shape: "rectangular", text: "signin_with", locale: "zh_TW", width: 340 });
+  $("#authMessage").textContent = "登入後，本頁只保存必要的帳號顯示資訊於目前瀏覽器工作階段。";
+}
 
 function loadResources() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || clone(initialResources); }
@@ -93,6 +137,8 @@ $("#resourceForm").addEventListener("submit", saveFromForm);
 $("#resourceRows").addEventListener("click", event => { const edit = event.target.closest("[data-edit]"); const remove = event.target.closest("[data-delete]"); if (edit) openEditor(resources.find(item => item.id === edit.dataset.edit)); if (remove) deleteResource(remove.dataset.delete); });
 $("#exportData").addEventListener("click", exportJson);
 $("#resetDemo").addEventListener("click", () => { if (window.confirm("確定要清除本機編輯並還原示範資料嗎？")) { resources = clone(initialResources); localStorage.removeItem(STORAGE_KEY); render(); } });
+$("#accountButton").addEventListener("click", () => { const popover = $("#accountPopover"); popover.hidden = !popover.hidden; $("#accountButton").setAttribute("aria-expanded", String(!popover.hidden)); });
+$("#signOutButton").addEventListener("click", () => { sessionStorage.removeItem(AUTH_SESSION_KEY); window.google?.accounts?.id?.disableAutoSelect(); location.reload(); });
 document.querySelectorAll("[data-view]").forEach(button => button.addEventListener("click", () => { document.querySelectorAll("[data-view]").forEach(item => item.classList.remove("is-active")); button.classList.add("is-active"); const labels = { dashboard:"資料總覽", resources:"資源管理", review:"審查佇列", taxonomy:"分類與標籤" }; $("#viewTitle").textContent = labels[button.dataset.view]; if (button.dataset.view === "review") { state.status = "review"; $("#adminStatus").value = "review"; } else { state.status = ""; $("#adminStatus").value = ""; } render(); $(".workspace-card").scrollIntoView({behavior:"smooth"}); }));
 
-render();
+window.addEventListener("load", initializeGoogleSignIn);
