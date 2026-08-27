@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="整合 SEL 指標、教案、評量工具、課程綱要、學術論文與各國公開資料的示範知識平臺。">
+  <title>SEL 知識樞紐｜社會情緒學習整合資料庫</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#catalog">跳至資料目錄</a>
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="SEL 知識樞紐首頁">
+      <span class="brand-mark" aria-hidden="true">S</span>
+      <span><strong>SEL 知識樞紐</strong><small>Social &amp; Emotional Learning Hub</small></span>
+    </a>
+    <nav aria-label="主要導覽">
+      <a href="#catalog">探索資源</a>
+      <a href="#pathways">使用情境</a>
+      <a href="#about">關於資料庫</a>
+    </nav>
+    <button class="collection-button" id="collectionButton" type="button">
+      我的資料夾 <span id="collectionCount">0</span>
+    </button>
+  </header>
+
+  <main id="top">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow">研究證據 × 課程實踐 × 在地轉化</p>
+        <h1 id="hero-title">從一項 SEL 能力，找到完整的教學與研究脈絡</h1>
+        <p class="hero-lede">整合指標、課綱、教案、評量工具、學術論文與各國公開資料，協助學者、教師與學生，把分散的知識轉化為可操作的行動。</p>
+        <form class="hero-search" id="heroSearch" role="search">
+          <label class="sr-only" for="heroSearchInput">搜尋資料庫</label>
+          <input id="heroSearchInput" type="search" placeholder="例如：國小、情緒覺察、形成性評量" autocomplete="off">
+          <button type="submit">開始探索</button>
+        </form>
+        <div class="quick-links" aria-label="熱門搜尋">
+          <span>熱門：</span>
+          <button type="button" data-query="自我覺察">自我覺察</button>
+          <button type="button" data-query="國小">國小</button>
+          <button type="button" data-query="教師增能">教師增能</button>
+        </div>
+      </div>
+      <div class="hero-map" aria-label="資料庫知識鏈">
+        <div class="map-center">SEL<br><small>共同指標</small></div>
+        <div class="map-node node-1">課程綱要</div>
+        <div class="map-node node-2">教案活動</div>
+        <div class="map-node node-3">評量工具</div>
+        <div class="map-node node-4">研究證據</div>
+        <div class="map-node node-5">跨國資料</div>
+      </div>
+    </section>
+
+    <section class="metrics" aria-label="資料庫統計">
+      <article><strong id="resourceMetric">0</strong><span>示範資源</span></article>
+      <article><strong>6</strong><span>核心模組</span></article>
+      <article><strong id="dimensionMetric">0</strong><span>SEL 能力向度</span></article>
+      <article><strong>4</strong><span>主要使用情境</span></article>
+    </section>
+
+    <section class="catalog-section" id="catalog" aria-labelledby="catalog-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">知識目錄</p>
+          <h2 id="catalog-title">探索 SEL 資源</h2>
+          <p>利用共同欄位跨越資料類型，快速建立「指標—課綱—教案—評量—證據」的關聯。</p>
+        </div>
+        <button class="secondary-button" id="exportButton" type="button">匯出目前結果</button>
+      </div>
+
+      <div class="catalog-layout">
+        <aside class="filters" aria-label="篩選條件">
+          <div class="filter-head">
+            <h3>篩選條件</h3>
+            <button id="resetFilters" type="button">清除</button>
+          </div>
+          <label for="catalogSearch">關鍵字</label>
+          <input id="catalogSearch" type="search" placeholder="搜尋標題、摘要或標籤">
+
+          <label for="typeFilter">資料類型</label>
+          <select id="typeFilter"><option value="">全部類型</option></select>
+
+          <label for="stageFilter">教育階段</label>
+          <select id="stageFilter"><option value="">全部階段</option></select>
+
+          <label for="dimensionFilter">SEL 能力</label>
+          <select id="dimensionFilter"><option value="">全部能力</option></select>
+
+          <label for="evidenceFilter">證據／審查狀態</label>
+          <select id="evidenceFilter"><option value="">全部狀態</option></select>
+
+          <div class="filter-note">
+            <strong>資料治理原則</strong>
+            <p>每筆資源均標示來源、版本與權利狀態。學生評量資料不作心理診斷或能力排名。</p>
+          </div>
+        </aside>
+
+        <div class="results-area">
+          <div class="results-toolbar">
+            <p aria-live="polite"><strong id="resultCount">0</strong> 筆符合條件的資源</p>
+            <label for="sortSelect">排序
+              <select id="sortSelect">
+                <option value="featured">精選排序</option>
+                <option value="newest">更新日期</option>
+                <option value="title">標題</option>
+              </select>
+            </label>
+          </div>
+          <div class="resource-grid" id="resourceGrid"></div>
+          <div class="empty-state" id="emptyState" hidden>
+            <strong>找不到符合條件的資源</strong>
+            <p>請減少篩選條件，或改用較寬廣的關鍵字。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="pathways" id="pathways" aria-labelledby="pathways-title">
+      <div class="section-heading compact">
+        <div>
+          <p class="eyebrow">依使用情境進入</p>
+          <h2 id="pathways-title">一套資料，多種實踐路徑</h2>
+        </div>
+      </div>
+      <div class="pathway-grid">
+        <article><span>01</span><h3>學者與研究人員</h3><p>比較研究設計、樣本、工具與證據層級，建立可追溯的文獻與資料集。</p><button data-role-query="研究">探索研究資源</button></article>
+        <article><span>02</span><h3>教師與課程設計者</h3><p>依學段、領域、時間與能力指標，找到可嵌入課室的教案及評量策略。</p><button data-role-query="教案">探索教學資源</button></article>
+        <article><span>03</span><h3>學生與學習者</h3><p>透過年齡適切的活動與形成性回饋，累積自我覺察與人際互動的學習歷程。</p><button data-role-query="學生">探索學生資源</button></article>
+        <article><span>04</span><h3>教師工作坊</h3><p>組合增能教材、共備活動與前後測工具，支持專業學習及成果追蹤。</p><button data-role-query="教師增能">探索工作坊資源</button></article>
+      </div>
+    </section>
+
+    <section class="about" id="about" aria-labelledby="about-title">
+      <div>
+        <p class="eyebrow">關於本平臺</p>
+        <h2 id="about-title">以 SEL 指標為樞紐，連結政策、研究與課室</h2>
+      </div>
+      <div class="about-copy">
+        <p>本示範平臺採取「共通核心＋多架構映射」的資料設計，保留不同 SEL 理論特色，並結合我國課程綱要與教學脈絡，以作為教學、研究及政策分析的共同概念基礎。</p>
+        <p>目前內容為第一版示範資料，正式收錄前仍須完成來源查核、專家審查、授權確認及版本管理。</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div><strong>SEL 知識樞紐</strong><p>社會情緒學習整合資料庫 MVP</p></div>
+    <p>公開測試版 · 資料僅供教育與研究示範使用</p>
+  </footer>
+
+  <dialog id="resourceDialog" aria-labelledby="dialogTitle">
+    <button class="dialog-close" id="dialogClose" type="button" aria-label="關閉">×</button>
+    <div id="dialogContent"></div>
+  </dialog>
+
+  <dialog id="collectionDialog" aria-labelledby="collectionTitle">
+    <button class="dialog-close" id="collectionClose" type="button" aria-label="關閉">×</button>
+    <div class="dialog-heading"><p class="eyebrow">個人工作區</p><h2 id="collectionTitle">我的資料夾</h2></div>
+    <div id="collectionList"></div>
+    <div class="collection-actions">
+      <button id="collectionExport" class="primary-button" type="button">匯出 JSON</button>
+      <button id="collectionClear" class="secondary-button" type="button">清空資料夾</button>
+    </div>
+  </dialog>
+
+  <script src="data/resources.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
