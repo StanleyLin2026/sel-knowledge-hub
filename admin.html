@@ -8,6 +8,27 @@
   <link rel="stylesheet" href="admin.css">
 </head>
 <body>
+  <section class="auth-gate" id="authGate" aria-labelledby="authTitle">
+    <div class="auth-panel">
+      <a class="auth-brand" href="index.html" aria-label="返回 SEL 知識樞紐前台">
+        <span class="admin-brand-mark">S</span>
+        <span><strong>SEL 知識樞紐</strong><small>Knowledge Hub Console</small></span>
+      </a>
+      <p class="eyebrow">ADMINISTRATOR ACCESS</p>
+      <h1 id="authTitle">登入管理後台</h1>
+      <p class="auth-intro">請使用 Google 帳號確認身分，才能開啟 SEL 資源管理介面。</p>
+      <div class="google-signin-wrap"><div id="googleSignInButton" aria-label="Google 登入按鈕"></div></div>
+      <p class="auth-message" id="authMessage" role="status">正在載入 Google 登入服務…</p>
+      <div class="auth-privacy"><span aria-hidden="true">✓</span><p><strong>資料維持本機模式</strong><br>Google 登入僅用於開啟管理介面；資源資料不會寫入 Firebase。</p></div>
+      <a class="auth-back" href="index.html">← 返回公開網站</a>
+    </div>
+    <div class="auth-visual" aria-hidden="true">
+      <div class="auth-orbit orbit-one"></div><div class="auth-orbit orbit-two"></div>
+      <div class="auth-quote"><span>SEL</span><p>把研究、課程與評量，整理成可持續生長的教育知識。</p></div>
+    </div>
+  </section>
+
+  <div class="admin-shell" id="adminShell" hidden>
   <aside class="sidebar">
     <a class="admin-brand" href="index.html">
       <span class="admin-brand-mark">S</span>
@@ -35,6 +56,13 @@
       <div class="topbar-actions">
         <button class="button button-ghost" id="exportData" type="button">匯出 JSON</button>
         <button class="button button-primary" id="addResource" type="button">＋ 新增資源</button>
+        <div class="account-menu">
+          <button class="account-button" id="accountButton" type="button" aria-expanded="false" aria-controls="accountPopover">
+            <img id="accountAvatar" alt="登入者大頭貼">
+            <span><strong id="accountName">Google 使用者</strong><small id="accountEmail"></small></span><b aria-hidden="true">⌄</b>
+          </button>
+          <div class="account-popover" id="accountPopover" hidden><p>目前登入帳號</p><strong id="popoverEmail"></strong><button id="signOutButton" type="button">登出後台</button></div>
+        </div>
       </div>
     </header>
 
@@ -91,7 +119,9 @@
       <div class="dialog-actions"><button class="button button-ghost" value="cancel">取消</button><button class="button button-primary" id="saveResource" type="submit">儲存到本機</button></div>
     </form>
   </dialog>
+  </div>
 
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="data/resources.js"></script>
   <script src="admin.js"></script>
 </body>
