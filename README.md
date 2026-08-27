@@ -31,6 +31,23 @@ python3 tools/sync_to_obsidian.py \
 
 網站首次點選「在 Obsidian 中開啟」時，會詢問 vault 名稱與資源卡相對資料夾；這兩項設定僅保存在使用者瀏覽器的 `localStorage`，不會寫入 GitHub 或傳送至網站。
 
+## Firebase 後台
+
+- 專案：`seldatabase20260827`
+- 資料庫：Cloud Firestore Standard，`asia-east1 (Taiwan)`
+- 集合：`resources`（公開資源）與 `metadata`（目錄資訊）
+- 權限：訪客只能讀取 `status == "published"` 的資源；瀏覽器端禁止寫入
+- 前端：優先查詢 Firestore，連線失敗時自動改用 `data/resources.js`
+
+在已登入專案的 Google Cloud Shell 中，可執行：
+
+```bash
+firebase deploy --only firestore:rules --project seldatabase20260827
+node tools/seed-firestore.mjs
+```
+
+管理者可在 Firebase Console 編輯內容；要重新同步示範資料時，再執行 seed 指令。請勿把服務帳戶金鑰加入儲存庫。
+
 ## 本機預覽
 
 ```bash
@@ -51,7 +68,7 @@ python3 -m http.server 8000
 
 ## 技術架構
 
-本版為無建置程序的靜態網站，以 HTML、CSS 與原生 JavaScript 開發，資料位於 `data/resources.js`。後續可遷移至 PostgreSQL、全文搜尋服務與內容管理後臺。
+本版為無建置程序的靜態網站，以 HTML、CSS 與原生 JavaScript 開發；Cloud Firestore 為主要資料來源，`data/resources.js` 為離線備援。後續可加入管理者登入、審查工作流與全文搜尋服務。
 
 ## 授權
 
