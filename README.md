@@ -16,7 +16,20 @@
 - 資源詳情與來源／權利狀態提示。
 - 本機收藏資料夾（使用瀏覽器 localStorage）。
 - 目前搜尋結果 CSV 匯出與收藏 JSON 匯出。
+- 每筆資源可透過 Obsidian URI 開啟 vault 中的對應卡片。
 - 響應式、鍵盤可操作的繁體中文介面。
+
+## 串接 Obsidian
+
+同步工具會將 `data/resources.js` 轉換為具有 YAML properties、雙向連結與來源標記的 Markdown 卡片。再次同步時，`## 個人筆記` 以下的內容會保留。
+
+```bash
+python3 tools/sync_to_obsidian.py \
+  --vault "/path/to/your/vault" \
+  --folder "SEL-Database"
+```
+
+本部署使用的 vault 名稱與相對路徑可在 `app.js` 的 `obsidianConfig` 調整。
 
 ## 本機預覽
 
