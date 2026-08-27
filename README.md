@@ -29,7 +29,7 @@ python3 tools/sync_to_obsidian.py \
   --folder "SEL-Database"
 ```
 
-本部署使用的 vault 名稱與相對路徑可在 `app.js` 的 `obsidianConfig` 調整。
+網站首次點選「在 Obsidian 中開啟」時，會詢問 vault 名稱與資源卡相對資料夾；這兩項設定僅保存在使用者瀏覽器的 `localStorage`，不會寫入 GitHub 或傳送至網站。
 
 ## 本機預覽
 
