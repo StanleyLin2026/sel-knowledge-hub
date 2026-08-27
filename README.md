@@ -38,8 +38,10 @@ python3 tools/sync_to_obsidian.py \
 - 集合：`resources`（公開資源）與 `metadata`（目錄資訊）
 - 權限：訪客只能讀取 `status == "published"` 的資源；瀏覽器端禁止寫入
 - 前端：優先查詢 Firestore，連線失敗時自動改用 `data/resources.js`
-- 視覺化後台：`admin.html` 提供本機新增、編輯、刪除、篩選與 JSON 匯出；不直接讀寫 Firebase
-- 後台登入：使用 Google Identity Services；登入者基本資料只保留在目前瀏覽器的 `sessionStorage`
+- 視覺化後台：`admin.html` 直接連接 Firebase Authentication 與 Cloud Firestore，可新增、編輯、審查、發布、刪除及匯出 JSON
+- 後台登入：使用 Firebase Authentication 的 Google 登入；第一位管理者為 `jerlih2@gmail.com`
+- 角色權限：管理者可完整管理資源與使用者角色；編輯者可處理草稿／待審內容；檢視者只能閱讀
+- 使用者資料：首次登入後在 Firestore `users/{uid}` 建立角色資料，所有授權由 Firestore Security Rules 強制執行
 
 在已登入專案的 Google Cloud Shell 中，可執行：
 
@@ -70,7 +72,7 @@ python3 -m http.server 8000
 
 ## 技術架構
 
-本版為無建置程序的靜態網站，以 HTML、CSS 與原生 JavaScript 開發；Cloud Firestore 為前台主要資料來源，`data/resources.js` 為離線備援。後台的 Google 登入目前是靜態網站的介面存取閘門；若未來存放機密或多人共用資料，仍須加入伺服器端權杖驗證、管理者名單與資料庫安全規則。
+本版為無建置程序的靜態網站，以 HTML、CSS、原生 JavaScript 與 Firebase Web SDK 開發；Cloud Firestore 為前台及後台資料來源，`data/resources.js` 為前台離線備援。後台以 Firebase Authentication 確認 Google 帳號身分，並由 Firestore Security Rules 執行角色式授權。
 
 ## 授權
 
