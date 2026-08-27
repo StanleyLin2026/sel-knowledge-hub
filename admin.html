@@ -75,7 +75,7 @@
     </section>
 
     <section class="stats-grid" id="statsGrid" aria-label="資料統計">
-      <article class="stat-card stat-green"><span>全部資源</span><strong id="totalStat">0</strong><small>目前本機資料筆數</small></article>
+      <article class="stat-card stat-green"><span>全部資源</span><strong id="totalStat">0</strong><small>目前 Firestore 資料筆數</small></article>
       <article class="stat-card stat-coral"><span>待審查</span><strong id="reviewStat">0</strong><small>需要編輯或專家確認</small></article>
       <article class="stat-card stat-gold"><span>已發布</span><strong id="publishedStat">0</strong><small>可供前台使用的內容</small></article>
       <article class="stat-card stat-blue"><span>資料類型</span><strong id="typeStat">0</strong><small>教案、評量、課綱等</small></article>
@@ -133,7 +133,7 @@
         <label>發布狀態<select id="fieldStatus"><option value="draft">草稿</option><option value="review">待審查</option><option value="published">已發布</option></select></label>
       </div>
       <p class="form-error" id="formError" role="alert"></p>
-      <div class="dialog-actions"><button class="button button-ghost" value="cancel">取消</button><button class="button button-primary" id="saveResource" type="submit">儲存到本機</button></div>
+      <div class="dialog-actions"><button class="button button-ghost" value="cancel">取消</button><button class="button button-primary" id="saveResource" type="submit">儲存到 Firebase</button></div>
     </form>
   </dialog>
   </div>
