@@ -220,6 +220,7 @@ function switchView(view, button) {
   document.querySelectorAll("[data-view]").forEach(item => item.classList.remove("is-active")); button.classList.add("is-active");
   const userView = view === "users";
   $("#userWorkspace").hidden = !userView; $("#resourceWorkspace").hidden = userView; $("#statsGrid").hidden = userView; $("#dataNotice").hidden = userView;
+  $("#exportData").hidden = userView; $("#addResource").hidden = userView || !canEdit();
   $("#viewTitle").textContent = userView ? "使用者權限" : ({ dashboard:"資料總覽", resources:"資源管理", review:"審查佇列", taxonomy:"分類與標籤" }[view] || "資料總覽");
   if (userView) { loadUsers(); return; }
   state.status = view === "review" ? "review" : ""; $("#adminStatus").value = state.status; render();
