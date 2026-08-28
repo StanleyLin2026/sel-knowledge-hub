@@ -22,6 +22,7 @@
     <a class="admin-link" href="admin.html" aria-label="開啟 SEL 視覺化後台">
       管理後台 <span aria-hidden="true">→</span>
     </a>
+    <button class="obsidian-button" id="obsidianSettingsButton" type="button">Obsidian</button>
     <button class="collection-button" id="collectionButton" type="button">
       我的資料夾 <span id="collectionCount">0</span>
     </button>
@@ -165,6 +166,22 @@
       <button id="collectionExport" class="primary-button" type="button">匯出 JSON</button>
       <button id="collectionClear" class="secondary-button" type="button">清空資料夾</button>
     </div>
+  </dialog>
+
+  <dialog id="obsidianDialog" aria-labelledby="obsidianTitle">
+    <button class="dialog-close" id="obsidianClose" type="button" aria-label="關閉">×</button>
+    <div class="dialog-heading"><p class="eyebrow">PERSONAL KNOWLEDGE BASE</p><h2 id="obsidianTitle">連接 Obsidian</h2></div>
+    <p class="dialog-summary">設定只保存在目前瀏覽器，用來產生 Obsidian URI；網站不會讀取或上傳您的私人筆記。</p>
+    <form id="obsidianForm" class="obsidian-form">
+      <label>Vault 名稱<input id="obsidianVault" required placeholder="例如：My Research Vault"></label>
+      <label>SEL 資源卡資料夾<input id="obsidianFolder" required placeholder="例如：SEL-Database/Resources"></label>
+      <p id="obsidianError" class="form-error" role="alert"></p>
+      <div class="dialog-actions">
+        <button class="primary-button" type="submit">儲存設定</button>
+        <button class="secondary-button" id="obsidianTest" type="button">測試開啟 Vault</button>
+        <button class="text-button" id="obsidianReset" type="button">清除設定</button>
+      </div>
+    </form>
   </dialog>
 
   <script src="data/resources.js"></script>
