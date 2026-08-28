@@ -21,15 +21,16 @@
 
 ## 串接 Obsidian
 
-同步工具會將 `data/resources.js` 轉換為具有 YAML properties、雙向連結與來源標記的 Markdown 卡片。再次同步時，`## 個人筆記` 以下的內容會保留。
+同步工具可直接讀取 Firestore 中已發布的資料，轉換為具有 YAML properties、雙向連結與來源標記的 Markdown 卡片。再次同步時，`## 個人筆記` 以下的內容會保留。
 
 ```bash
 python3 tools/sync_to_obsidian.py \
   --vault "/path/to/your/vault" \
-  --folder "SEL-Database"
+  --folder "SEL-Database" \
+  --firestore
 ```
 
-網站首次點選「在 Obsidian 中開啟」時，會詢問 vault 名稱與資源卡相對資料夾；這兩項設定僅保存在使用者瀏覽器的 `localStorage`，不會寫入 GitHub 或傳送至網站。
+網站可透過頁首「Obsidian」按鈕設定 vault 名稱與資源卡相對資料夾；這兩項設定僅保存在使用者瀏覽器的 `localStorage`，不會寫入 GitHub 或傳送至網站。資源詳情中的「在 Obsidian 中開啟」會使用官方 Obsidian URI 定位相應卡片。
 
 ## Firebase 後台
 
