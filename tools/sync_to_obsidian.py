@@ -13,9 +13,12 @@ import re
 from collections import defaultdict
 from pathlib import Path
 from urllib.parse import quote
+from urllib.request import Request, urlopen
 
 
 SITE_URL = "https://stanleylin2026.github.io/sel-knowledge-hub/"
+FIREBASE_PROJECT_ID = "seldatabase20260827"
+FIREBASE_API_KEY = "AIzaSyCZnsJu3bC0slZ0_KLAeWx3j413dyHNU9U"
 SYNC_MARKER = "<!-- SEL-SYNC:GENERATED -->"
 PERSONAL_HEADING = "## 個人筆記"
 
@@ -26,6 +29,51 @@ def load_resources(source: Path) -> list[dict]:
     raw = re.sub(r";\s*$", "", raw)
     raw = re.sub(r'([\{,]\s*)([A-Za-z][A-Za-z0-9_]*)\s*:', r'\1"\2":', raw)
     return json.loads(raw)
+
+
+def decode_firestore_value(value: dict):
+    if "stringValue" in value:
+        return value["stringValue"]
+    if "integerValue" in value:
+        return int(value["integerValue"])
+    if "doubleValue" in value:
+        return value["doubleValue"]
+    if "booleanValue" in value:
+        return value["booleanValue"]
+    if "timestampValue" in value:
+        return value["timestampValue"]
+    if "nullValue" in value:
+        return None
+    if "arrayValue" in value:
+        return [decode_firestore_value(item) for item in value["arrayValue"].get("values", [])]
+    if "mapValue" in value:
+        return decode_firestore_fields(value["mapValue"].get("fields", {}))
+    return None
+
+
+def decode_firestore_fields(fields: dict) -> dict:
+    return {key: decode_firestore_value(value) for key, value in fields.items()}
+
+
+def load_firestore_resources(project_id: str, api_key: str) -> list[dict]:
+    endpoint = f"https://firestore.googleapis.com/v1/projects/{project_id}/databases/(default)/documents:runQuery?key={api_key}"
+    query = {
+        "structuredQuery": {
+            "from": [{"collectionId": "resources"}],
+            "where": {
+                "fieldFilter": {
+                    "field": {"fieldPath": "status"},
+                    "op": "EQUAL",
+                    "value": {"stringValue": "published"},
+                }
+            },
+        }
+    }
+    request = Request(endpoint, data=json.dumps(query).encode(), headers={"Content-Type": "application/json"})
+    with urlopen(request, timeout=30) as response:
+        rows = json.load(response)
+    resources = [decode_firestore_fields(row["document"].get("fields", {})) for row in rows if "document" in row]
+    return sorted(resources, key=lambda item: item.get("id", ""))
 
 
 def yaml_string(value: str) -> str:
@@ -193,12 +241,12 @@ tags: [SEL資料庫, 使用說明]
 在 `sel-knowledge-hub` 專案目錄執行：
 
 ```bash
-python3 tools/sync_to_obsidian.py --vault "/path/to/1.2021-01-Stanley" --folder "{folder}"
+python3 tools/sync_to_obsidian.py --vault "/path/to/your/vault" --folder "{folder}" --firestore
 ```
 
 ## 使用原則
 
-1. 資料庫欄位或示範內容的修正，應先更新 GitHub 的 `data/resources.js`，再執行同步。
+1. 正式資料由 Firebase 後台發布後，再以 `--firestore` 執行同步；只有離線開發時才改用 `data/resources.js`。
 2. 個人的聯想、文獻補充或研究疑問，請寫在各卡的「個人筆記」區。
 3. 正式引用前須回到原始文獻、課綱或工具來源完成查核。
 
@@ -211,6 +259,9 @@ def main() -> None:
     parser.add_argument("--vault", required=True, type=Path, help="Obsidian vault root")
     parser.add_argument("--folder", default="SEL-Database", help="Target folder relative to vault")
     parser.add_argument("--source", type=Path, help="Path to resources.js")
+    parser.add_argument("--firestore", action="store_true", help="Load published resources from Cloud Firestore")
+    parser.add_argument("--project-id", default=FIREBASE_PROJECT_ID, help="Firebase project ID")
+    parser.add_argument("--api-key", default=FIREBASE_API_KEY, help="Firebase Web API key")
     args = parser.parse_args()
 
     project_root = Path(__file__).resolve().parents[1]
@@ -220,7 +271,8 @@ def main() -> None:
     if vault not in destination.parents:
         raise SystemExit("Target folder must be inside the selected vault")
 
-    resources = load_resources(source)
+    resources = load_firestore_resources(args.project_id, args.api_key) if args.firestore else load_resources(source)
+    source_label = f"firestore://{args.project_id}/resources?status=published" if args.firestore else str(source)
     changed = 0
     for item in resources:
         path = destination / "Resources" / resource_filename(item)
@@ -235,7 +287,7 @@ def main() -> None:
         changed += write_if_changed(destination / f"SEL-資料類型-{resource_type}.md", build_type_index(resource_type, resources))
 
     manifest = {
-        "source": str(source),
+        "source": source_label,
         "destination": str(destination),
         "resource_count": len(resources),
         "generated_files": sorted(str(path.relative_to(destination)) for path in destination.rglob("*.md")),
