@@ -8,16 +8,28 @@ const $ = (selector) => document.querySelector(selector);
 const unique = (key) => [...new Set(resources.flatMap(item => Array.isArray(item[key]) ? item[key] : [item[key]]))].sort((a, b) => a.localeCompare(b, "zh-Hant"));
 const escapeHtml = (value) => String(value).replace(/[&<>'"]/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[char]));
 const noteFilename = item => `${item.id} ${item.title.replace(/[\\/:*?"<>|]/g, "-")}`;
+const OBSIDIAN_CONFIG_KEY = "sel-obsidian-config";
+let pendingObsidianItem = null;
+
+function getObsidianConfig() {
+  try { return JSON.parse(localStorage.getItem(OBSIDIAN_CONFIG_KEY) || "null"); }
+  catch { return null; }
+}
+
+function showObsidianSettings(item = null) {
+  pendingObsidianItem = item;
+  const config = getObsidianConfig();
+  $("#obsidianVault").value = config?.vault || "";
+  $("#obsidianFolder").value = config?.folder || "SEL-Database/Resources";
+  $("#obsidianError").textContent = "";
+  $("#obsidianDialog").showModal();
+}
 
 function openInObsidian(item) {
-  let config = JSON.parse(localStorage.getItem("sel-obsidian-config") || "null");
+  const config = getObsidianConfig();
   if (!config?.vault || !config?.folder) {
-    const vault = window.prompt("請輸入 Obsidian vault 名稱（設定只保存在此瀏覽器）");
-    if (!vault) return;
-    const folder = window.prompt("請輸入資源卡在 vault 內的相對資料夾", "SEL-Database/Resources");
-    if (!folder) return;
-    config = { vault: vault.trim(), folder: folder.replace(/^\/+|\/+$/g, "") };
-    localStorage.setItem("sel-obsidian-config", JSON.stringify(config));
+    showObsidianSettings(item);
+    return;
   }
   const file = `${config.folder}/${noteFilename(item)}`;
   window.location.href = `obsidian://open?vault=${encodeURIComponent(config.vault)}&file=${encodeURIComponent(file)}`;
@@ -157,9 +169,26 @@ $("#collectionButton").addEventListener("click", openCollection);
 $("#collectionList").addEventListener("click", event => { if (event.target.dataset.remove) { toggleSave(event.target.dataset.remove); openCollection(); } });
 $("#collectionExport").addEventListener("click", () => download("sel-collection.json", JSON.stringify(resources.filter(item => state.collection.has(item.id)), null, 2)));
 $("#collectionClear").addEventListener("click", () => { state.collection.clear(); localStorage.removeItem("sel-collection"); $("#collectionDialog").close(); render(); });
+$("#obsidianSettingsButton").addEventListener("click", () => showObsidianSettings());
+$("#obsidianForm").addEventListener("submit", event => {
+  event.preventDefault();
+  const vault = $("#obsidianVault").value.trim();
+  const folder = $("#obsidianFolder").value.trim().replace(/^\/+|\/+$/g, "");
+  if (!vault || !folder) { $("#obsidianError").textContent = "請完整填寫 Vault 名稱與資料夾。"; return; }
+  localStorage.setItem(OBSIDIAN_CONFIG_KEY, JSON.stringify({ vault, folder }));
+  $("#obsidianDialog").close();
+  if (pendingObsidianItem) { const item = pendingObsidianItem; pendingObsidianItem = null; openInObsidian(item); }
+});
+$("#obsidianTest").addEventListener("click", () => {
+  const vault = $("#obsidianVault").value.trim();
+  if (!vault) { $("#obsidianError").textContent = "請先輸入 Vault 名稱。"; return; }
+  window.location.href = `obsidian://open?vault=${encodeURIComponent(vault)}`;
+});
+$("#obsidianReset").addEventListener("click", () => { localStorage.removeItem(OBSIDIAN_CONFIG_KEY); $("#obsidianVault").value = ""; $("#obsidianFolder").value = "SEL-Database/Resources"; $("#obsidianError").textContent = "設定已清除。"; });
 $("#dialogClose").addEventListener("click", () => $("#resourceDialog").close());
 $("#collectionClose").addEventListener("click", () => $("#collectionDialog").close());
-["#resourceDialog", "#collectionDialog"].forEach(selector => $(selector).addEventListener("click", event => { if (event.target === event.currentTarget) event.currentTarget.close(); }));
+$("#obsidianClose").addEventListener("click", () => { pendingObsidianItem = null; $("#obsidianDialog").close(); });
+["#resourceDialog", "#collectionDialog", "#obsidianDialog"].forEach(selector => $(selector).addEventListener("click", event => { if (event.target === event.currentTarget) { if (selector === "#obsidianDialog") pendingObsidianItem = null; event.currentTarget.close(); } }));
 
 render();
 const initialResource = new URLSearchParams(window.location.search).get("resource");
